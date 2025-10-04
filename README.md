@@ -7,9 +7,8 @@ This is my (your) submission for the **NASA / Space Apps Challenge 2025** under 
 
 ## 📌 Features
 
+-bloom and vegetation monitoring
 - map UI, satellite data visualization, time-lapse, user reporting
-- ...
-- ...
 
 ---
 
