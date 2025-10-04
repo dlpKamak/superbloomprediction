@@ -1,5 +1,7 @@
 ```md
 # Authors & Contributors
 
-- **Lakshmi Preethi Kamak** — primary author, frontend, overall design  
+- **Lakshmi Preethi Kamak** — frontend, map visualization, data analysis
   GitHub: [@dlpKamak](https://github.com/dlpKamak)
+- **Nouraldin Hassan** - backend, API calls, dataset ecploration
+- **Pardis ** - frontend UI/UX
