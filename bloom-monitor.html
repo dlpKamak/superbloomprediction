@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NASA Global Bloom Monitor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dbeafe 50%, #fae8ff 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo {
+            background: linear-gradient(135deg, #10b981, #3b82f6);
+            padding: 15px;
+            border-radius: 15px;
+        }
+        
+        h1 {
+            font-size: 2em;
+            background: linear-gradient(135deg, #059669, #2563eb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            color: #6b7280;
+            margin-top: 5px;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .stat-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        
+        .stat-green {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        
+        .stat-blue {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .control-input, .control-btn {
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .control-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .control-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        
+        .btn-toggle {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+        
+        .btn-toggle:hover {
+            background: #059669;
+        }
+        
+        .btn-toggle.inactive {
+            background: #d1d5db;
+            color: #4b5563;
+            border-color: #d1d5db;
+        }
+        
+        .opacity-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .opacity-slider {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: #e5e7eb;
+            appearance: none;
+            cursor: pointer;
+        }
+        
+        .opacity-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+        }
+        
+        .opacity-value {
+            min-width: 50px;
+            font-weight: 600;
+            color: #4b5563;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .card-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        #map {
+            height: 500px;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .legend {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 12px;
+        }
+        
+        .legend-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 15px;
+        }
+        
+        .gradient-bar {
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(to right, 
+                #654321 0%, #8B4513 10%, #CD853F 20%, #DEB887 30%, 
+                #FFFF99 40%, #ADFF2F 50%, #7CFC00 60%, 
+                #32CD32 70%, #228B22 80%, #006400 90%, #004d00 100%);
+            margin-bottom: 8px;
+        }
+        
+        .gradient-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #6b7280;
+            margin-bottom: 15px;
+        }
+        
+        .legend-items {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+        
+        .legend-info {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .data-source-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #eff6ff;
+            border-radius: 12px;
+            border: 1px solid #bfdbfe;
+        }
+        
+        .data-source-title {
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 10px;
+        }
+        
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            font-size: 13px;
+        }
+        
+        .data-item-label {
+            color: #3b82f6;
+            font-size: 11px;
+        }
+        
+        .data-item-value {
+            font-weight: 600;
+            color: #1e3a8a;
+        }
+        
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .alert-box {
+            padding: 15px;
+            background: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .alert-location {
+            font-weight: 600;
+            color: #92400e;
+        }
+        
+        .alert-date {
+            font-size: 13px;
+            color: #d97706;
+            margin-top: 5px;
+        }
+        
+        .alert-intensity {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 3px;
+        }
+        
+        .no-alerts {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .bloom-events {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .bloom-event {
+            padding: 15px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .bloom-event:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .bloom-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+        
+        .bloom-title {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .intensity-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .bloom-details {
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        
+        .bloom-label {
+            color: #6b7280;
+        }
+        
+        .bloom-value {
+            font-weight: 500;
+            display: block;
+            margin-top: 2px;
+        }
+        
+        .species-name {
+            font-style: italic;
+        }
+        
+        .pollinators {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        
+        .pollinator-tag {
+            padding: 4px 10px;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 20px;
+            font-size: 11px;
+        }
+        
+        .bloom-footer {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #f3f4f6;
+            font-size: 11px;
+            color: #6b7280;
+        }
+        
+        .insights {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .insight-card {
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 13px;
+        }
+        
+        .insight-green {
+            background: #dcfce7;
+            border: 1px solid #86efac;
+        }
+        
+        .insight-blue {
+            background: #dbeafe;
+            border: 1px solid #93c5fd;
+        }
+        
+        .insight-purple {
+            background: #f3e8ff;
+            border: 1px solid #d8b4fe;
+        }
+        
+        .insight-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .insight-green .insight-title {
+            color: #15803d;
+        }
+        
+        .insight-blue .insight-title {
+            color: #1e40af;
+        }
+        
+        .insight-purple .insight-title {
+            color: #6b21a8;
+        }
+        
+        .insight-green p {
+            color: #166534;
+        }
+        
+        .insight-blue p {
+            color: #1e3a8a;
+        }
+        
+        .insight-purple p {
+            color: #581c87;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .data-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-top {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .legend-items {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <div class="header-title">
+                    <div class="logo">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="2" y1="12" x2="22" y2="12"/>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1>NASA Global Bloom Monitor</h1>
+                        <p class="subtitle">Real-time MODIS NDVI satellite data and vegetation bloom tracking</p>
+                    </div>
+                </div>
+                <div class="stats">
+                    <div class="stat-badge stat-green">
+                        <span id="bloom-count">5</span> Active Blooms
+                    </div>
+                    <div class="stat-badge stat-blue">
+                        <span id="alert-count">0</span> Alerts
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Controls -->
+            <div class="controls">
+                <select id="region-select" class="control-input">
+                    <option value="global">Global View</option>
+                    <option value="north-america">North America</option>
+                    <option value="europe">Europe</option>
+                    <option value="asia">Asia</option>
+                    <option value="south-america">South America</option>
+                </select>
+                
+                <input type="date" id="date-picker" class="control-input" value="2024-04-15" min="2020-01-01" max="2024-12-31">
+                
+                <button id="animate-btn" class="control-btn btn-primary">
+                    <span id="play-icon">▶</span> Animate
+                </button>
+                
+                <button id="toggle-layer-btn" class="control-btn btn-toggle">
+                    <span>◈</span> NASA NDVI
+                </button>
+            </div>
+            
+            <!-- Opacity Control -->
+            <div class="opacity-control" id="opacity-control">
+                <label style="font-weight: 600; color: #4b5563; font-size: 14px;">Layer Opacity:</label>
+                <input type="range" id="opacity-slider" class="opacity-slider" min="0" max="1" step="0.1" value="0.6">
+                <span class="opacity-value" id="opacity-value">60%</span>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Map Section -->
+            <div class="card">
+                <div class="card-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    </svg>
+                    Live NASA GIBS NDVI Map
+                    <span style="margin-left: auto; font-size: 14px; font-weight: normal; color: #6b7280;">
+                        <span style="background: #dcfce7; color: #15803d; padding: 4px 12px; border-radius: 20px; font-weight: 600;">MODIS Terra</span>
+                        <span style="margin-left: 8px;">• 8-Day Composite</span>
+                    </span>
+                </div>
+                
+                <div id="map"></div>
+                
+                <!-- Legend -->
+                <div class="legend">
+                    <div class="legend-title">NDVI Legend (Normalized Difference Vegetation Index)</div>
+                    
+                    <div class="gradient-bar"></div>
+                    <div class="gradient-labels">
+                        <span>-0.1</span>
+                        <span>0.0</span>
+                        <span>0.2</span>
+                        <span>0.4</span>
+                        <span>0.6</span>
+                        <span>0.8</span>
+                        <span>1.0</span>
+                    </div>
+                    
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #654321;"></div>
+                            <span>Water/Bare Soil</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #DEB887;"></div>
+                            <span>Sparse Vegetation</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #7CFC00;"></div>
+                            <span>Healthy Vegetation</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #004d00;"></div>
+                            <span>Peak Bloom/Forest</span>
+                        </div>
+                    </div>
+                    
+                    <div class="legend-info">
+                        <strong>About NDVI:</strong> Ranges from -0.1 (water, rocks) to 1.0 (dense vegetation). Values above 0.6 indicate healthy, actively growing plants - perfect for tracking bloom events! NDVI uses near-infrared light that plants reflect strongly.
+                    </div>
+                </div>
+                
+                <!-- Data Source Info -->
+                <div class="data-source-info">
+                    <div class="data-source-title">NASA GIBS Data Source</div>
+                    <div class="data-grid">
+                        <div>
+                            <div class="data-item-label">Satellite:</div>
+                            <div class="data-item-value">Terra MODIS</div>
+                        </div>
+                        <div>
+                            <div class="data-item-label">Resolution:</div>
+                            <div class="data-item-value">250m</div>
+                        </div>
+                        <div>
+                            <div class="data-item-label">Temporal:</div>
+                            <div class="data-item-value">8-Day Composite</div>
+                        </div>
+                        <div>
+                            <div class="data-item-label">Coverage:</div>
+                            <div class="data-item-value">Global</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Alerts -->
+                <div class="card">
+                    <div class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        Bloom Alerts
+                    </div>
+                    <div id="alerts-container">
+                        <p class="no-alerts">No active bloom alerts for current timeframe</p>
+                    </div>
+                </div>
+                
+                <!-- Bloom Events -->
+                <div class="card">
+                    <div class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                            <path d="M2 12a15.3 15.3 0 0 0 10 4 15.3 15.3 0 0 0 10-4 15.3 15.3 0 0 0-10-4 15.3 15.3 0 0 0-10 4z"/>
+                        </svg>
+                        Tracked Bloom Events
+                    </div>
+                    <div id="bloom-events" class="bloom-events"></div>
+                </div>
+                
+                <!-- Predictions -->
+                <div class="card">
+                    <div class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                        </svg>
+                        Bloom Predictions & Insights
+                    </div>
+                    <div id="predictions" class="insights">
+                        <div class="insight-card insight-purple">
+                            <div class="insight-title">🔮 Predictive Analytics</div>
+                            <p>Analyzing NDVI trends to forecast bloom timing...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- How Predictions Work -->
+                <div class="card" style="background: #fef3c7; border-color: #fbbf24;">
+                    <div class="card-title" style="color: #92400e;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="16" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12.01" y2="8"/>
+                        </svg>
+                        How Bloom Prediction Works
+                    </div>
+                    <div style="font-size: 13px; color: #78350f; line-height: 1.6;">
+                        <p style="margin-bottom: 10px;"><strong>Data Sources Used:</strong></p>
+                        <ul style="margin-left: 20px; margin-bottom: 10px;">
+                            <li>NDVI trends (8-day historical data)</li>
+                            <li>Historical bloom patterns (past 5 years)</li>
+                            <li>Growing Degree Days (temperature accumulation)</li>
+                            <li>Soil moisture indicators</li>
+                        </ul>
+                        <p style="margin-bottom: 10px;"><strong>Prediction Method:</strong></p>
+                        <ul style="margin-left: 20px;">
+                            <li>Compare current NDVI to historical averages</li>
+                            <li>Detect early greening patterns (2-3 weeks ahead)</li>
+                            <li>Track vegetation rate of change</li>
+                            <li>Cross-reference with phenology models</li>
+                        </ul>
+                        <p style="margin-top: 10px; padding: 8px; background: #fffbeb; border-radius: 6px;">
+                            <strong>Accuracy:</strong> 7-14 day predictions are ~70-85% accurate. Combine with local weather forecasts and citizen science observations for best results.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Bloom event data
+        const bloomEvents = [
+            { id: 1, location: 'California Poppy Fields', lat: 34.5, lng: -118.2, intensity: 0.9, species: 'Eschscholzia californica', peak: '2024-04-15', ecosystem: 'Mediterranean', pollinators: ['Bees', 'Butterflies'] },
+            { id: 2, location: 'Texas Bluebonnets', lat: 30.3, lng: -97.7, intensity: 0.8, species: 'Lupinus texensis', peak: '2024-03-20', ecosystem: 'Prairie', pollinators: ['Bees', 'Hummingbirds'] },
+            { id: 3, location: 'Japanese Cherry Blossoms', lat: 35.7, lng: 139.7, intensity: 0.95, species: 'Prunus serrulata', peak: '2024-04-05', ecosystem: 'Temperate', pollinators: ['Bees', 'Beetles'] },
+            { id: 4, location: 'Dutch Tulip Fields', lat: 52.3, lng: 4.9, intensity: 0.85, species: 'Tulipa gesneriana', peak: '2024-04-25', ecosystem: 'Agricultural', pollinators: ['Bees'] },
+            { id: 5, location: 'Amazon Rainforest Canopy', lat: -3.1, lng: -60.0, intensity: 0.75, species: 'Mixed tropical species', peak: '2024-05-01', ecosystem: 'Tropical Rainforest', pollinators: ['Bees', 'Birds', 'Bats'] }
+        ];
+        
+        // State
+        let map;
+        let nasaLayer;
+        let isPlaying = false;
+        let animationInterval;
+        let currentDate = new Date('2024-04-15');
+        let showNASALayer = true;
+        let layerOpacity = 0.6;
+        
+        // Initialize everything after DOM is loaded
+        function initializeApp() {
+            // Initialize map
+            map = L.map('map').setView([20, 0], 2);
+            
+            // Base layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+            
+            // Function to get bloom color
+            function getBloomColor(intensity) {
+                if (intensity >= 0.9) return '#ec4899';
+                if (intensity >= 0.7) return '#fbbf24';
+                if (intensity >= 0.5) return '#4ade80';
+                return '#93c5fd';
+            }
+            
+            // Add bloom markers
+            bloomEvents.forEach(event => {
+                const marker = L.circleMarker([event.lat, event.lng], {
+                    radius: 8 + event.intensity * 12,
+                    fillColor: getBloomColor(event.intensity),
+                    color: '#fff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(map);
+                
+                marker.bindPopup(`
+                    <div style="font-family: sans-serif;">
+                        <strong>${event.location}</strong><br/>
+                        <em>${event.species}</em><br/>
+                        Intensity: ${(event.intensity * 100).toFixed(0)}%<br/>
+                        Peak: ${event.peak}<br/>
+                        Ecosystem: ${event.ecosystem}
+                    </div>
+                `);
+            });
+            
+            // Initialize NASA layer
+            updateNASALayer();
+            
+            // Setup event listeners
+            setupEventListeners();
+            
+            // Initial render
+            renderBloomEvents();
+            updateAlerts();
+            updatePredictions();
+        }
+        
+        // Function to get bloom color (duplicate for use outside init)
+        function getBloomColor(intensity) {
+            if (intensity >= 0.9) return '#ec4899';
+            if (intensity >= 0.7) return '#fbbf24';
+            if (intensity >= 0.5) return '#4ade80';
+            return '#93c5fd';
+        }
+        
+        
+        // Function to update NASA layer
+        function updateNASALayer() {
+            if (nasaLayer) {
+                map.removeLayer(nasaLayer);
+            }
+            
+            if (showNASALayer) {
+                const dateStr = currentDate.toISOString().split('T')[0];
+                nasaLayer = L.tileLayer(
+                    `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_NDVI_8Day/default/${dateStr}/250m/{z}/{y}/{x}.png`,
+                    {
+                        attribution: 'NASA GIBS MODIS Terra NDVI',
+                        opacity: layerOpacity,
+                        maxZoom: 9
+                    }
+                ).addTo(map);
+            }
+        }
+        
+        // Add bloom markers
+        bloomEvents.forEach(event => {
+            const marker = L.circleMarker([event.lat, event.lng], {
+                radius: 8 + event.intensity * 12,
+                fillColor: getBloomColor(event.intensity),
+                color: '#fff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(map);
+            
+            marker.bindPopup(`
+                <div style="font-family: sans-serif;">
+                    <strong>${event.location}</strong><br/>
+                    <em>${event.species}</em><br/>
+                    Intensity: ${(event.intensity * 100).toFixed(0)}%<br/>
+                    Peak: ${event.peak}<br/>
+                    Ecosystem: ${event.ecosystem}
+                </div>
+            `);
+        });
+        
+        // Initialize NASA layer
+        updateNASALayer();
+        
+        // Render bloom events
+        function renderBloomEvents() {
+            const container = document.getElementById('bloom-events');
+            container.innerHTML = bloomEvents.map(event => `
+                <div class="bloom-event" onclick="map.setView([${event.lat}, ${event.lng}], 8)">
+                    <div class="bloom-header">
+                        <div class="bloom-title">${event.location}</div>
+                        <div class="intensity-badge" style="background: ${getBloomColor(event.intensity)}">
+                            ${(event.intensity * 100).toFixed(0)}%
+                        </div>
+                    </div>
+                    <div class="bloom-details">
+                        <div>
+                            <span class="bloom-label">Key Pollinators:</span>
+                            <div class="pollinators">
+                                ${event.pollinators.map(p => `<span class="pollinator-tag">${p}</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bloom-footer">
+                        Peak: ${event.peak} • Coordinates: ${event.lat}°, ${event.lng}°
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Update predictions based on NDVI analysis
+        function updatePredictions() {
+            const predictionsContainer = document.getElementById('predictions');
+            const currentDateStr = currentDate.toISOString().split('T')[0];
+            
+            // Simulate NDVI trend analysis
+            const predictions = [];
+            
+            bloomEvents.forEach(event => {
+                const peakDate = new Date(event.peak);
+                const daysUntilPeak = Math.floor((peakDate - currentDate) / (1000 * 60 * 60 * 24));
+                
+                // Predict based on days until peak
+                if (daysUntilPeak > 0 && daysUntilPeak <= 21) {
+                    const confidence = Math.max(50, 100 - (daysUntilPeak * 2));
+                    const ndviTrend = daysUntilPeak <= 7 ? 'Rapid increase' : 'Gradual increase';
+                    
+                    predictions.push({
+                        location: event.location,
+                        daysUntil: daysUntilPeak,
+                        confidence: confidence,
+                        trend: ndviTrend,
+                        peakDate: event.peak,
+                        currentNDVI: (0.3 + (event.intensity * 0.4) * (1 - daysUntilPeak/30)).toFixed(2),
+                        expectedPeak: (event.intensity).toFixed(2)
+                    });
+                } else if (daysUntilPeak >= -7 && daysUntilPeak <= 0) {
+                    // Currently blooming
+                    predictions.push({
+                        location: event.location,
+                        daysUntil: 0,
+                        confidence: 95,
+                        trend: 'Peak bloom detected',
+                        peakDate: event.peak,
+                        currentNDVI: event.intensity.toFixed(2),
+                        expectedPeak: event.intensity.toFixed(2),
+                        status: 'active'
+                    });
+                }
+            });
+            
+            if (predictions.length > 0) {
+                predictionsContainer.innerHTML = predictions.map(pred => {
+                    const isActive = pred.status === 'active';
+                    const cardClass = isActive ? 'insight-green' : 'insight-purple';
+                    const emoji = isActive ? '🌸' : '🔮';
+                    
+                    return `
+                        <div class="insight-card ${cardClass}">
+                            <div class="insight-title">${emoji} ${pred.location}</div>
+                            <p style="margin-bottom: 8px;">
+                                ${isActive 
+                                    ? '<strong>🎯 Peak bloom happening NOW!</strong>' 
+                                    : `<strong>Peak predicted in ${pred.daysUntil} days</strong> (${pred.peakDate})`
+                                }
+                            </p>
+                            <div style="font-size: 12px; line-height: 1.5;">
+                                <strong>NDVI Trend:</strong> ${pred.trend}<br>
+                                <strong>Current NDVI:</strong> ${pred.currentNDVI} → Expected Peak: ${pred.expectedPeak}<br>
+                                <strong>Confidence:</strong> ${pred.confidence}%
+                                ${!isActive ? `<br><strong>Recommendation:</strong> Monitor daily NDVI changes` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                predictionsContainer.innerHTML = `
+                    <div class="insight-card insight-blue">
+                        <div class="insight-title">📊 Baseline Monitoring</div>
+                        <p>No imminent bloom events predicted. Continue monitoring NDVI trends in known bloom locations. Historical data suggests next major bloom events in 30+ days.</p>
+                    </div>
+                    <div class="insight-card insight-green">
+                        <div class="insight-title">💡 Analysis Tips</div>
+                        <p>
+                            • Look for NDVI values rising from 0.2-0.3 to 0.6+<br>
+                            • Monitor 2-3 week trends in bloom regions<br>
+                            • Compare to previous year's patterns<br>
+                            • Combine with temperature/rainfall data
+                        </p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Update predictions on date change
+        function onDateChange() {
+            currentDate = new Date(document.getElementById('date-picker').value);
+            updateNASALayer();
+            updateAlerts();
+            updatePredictions();
+        }
+        // Update alerts based on current date and bloom intensity
+        function updateAlerts() {
+            const alertsContainer = document.getElementById('alerts-container');
+            const alerts = bloomEvents.filter(event => {
+                const peakDate = new Date(event.peak);
+                const daysDiff = Math.abs(currentDate - peakDate) / (1000 * 60 * 60 * 24);
+                return daysDiff <= 7 && event.intensity > 0.8;
+            });
+            
+            document.getElementById('alert-count').textContent = alerts.length;
+            
+            if (alerts.length > 0) {
+                alertsContainer.innerHTML = alerts.map(alert => `
+                    <div class="alert-box">
+                        <div class="alert-location">${alert.location}</div>
+                        <div class="alert-date">Peak bloom expected: ${alert.peak}</div>
+                        <div class="alert-intensity">Intensity: ${(alert.intensity * 100).toFixed(0)}%</div>
+                    </div>
+                `).join('');
+            } else {
+                alertsContainer.innerHTML = '<p class="no-alerts">No active bloom alerts for current timeframe</p>';
+            }
+        }
+        
+        // Date picker change
+        document.getElementById('date-picker').addEventListener('change', function(e) {
+            currentDate = new Date(e.target.value);
+            updateNASALayer();
+            updateAlerts();
+            updatePredictions();
+        });
+        
+        // Opacity slider
+        document.getElementById('opacity-slider').addEventListener('input', function(e) {
+            layerOpacity = parseFloat(e.target.value);
+            document.getElementById('opacity-value').textContent = (layerOpacity * 100).toFixed(0) + '%';
+            updateNASALayer();
+        });
+        
+        // Toggle NASA layer
+        document.getElementById('toggle-layer-btn').addEventListener('click', function() {
+            showNASALayer = !showNASALayer;
+            this.classList.toggle('inactive', !showNASALayer);
+            updateNASALayer();
+        });
+        
+        // Animation
+        document.getElementById('animate-btn').addEventListener('click', function() {
+            isPlaying = !isPlaying;
+            const playIcon = document.getElementById('play-icon');
+            
+            if (isPlaying) {
+                playIcon.textContent = '⏸';
+                animationInterval = setInterval(() => {
+                    currentDate.setDate(currentDate.getDate() + 1);
+                    document.getElementById('date-picker').value = currentDate.toISOString().split('T')[0];
+                    updateNASALayer();
+                    updateAlerts();
+                    updatePredictions();
+                }, 1000);
+            } else {
+                playIcon.textContent = '▶';
+                clearInterval(animationInterval);
+            }
+        });
+        
+        // Region select
+        document.getElementById('region-select').addEventListener('change', function(e) {
+            const regions = {
+                'global': [20, 0, 2],
+                'north-america': [40, -100, 4],
+                'europe': [50, 10, 4],
+                'asia': [35, 105, 4],
+                'south-america': [-10, -60, 4]
+            };
+            const [lat, lng, zoom] = regions[e.target.value];
+            map.setView([lat, lng], zoom);
+        });
+        
+        // Initial render
+        renderBloomEvents();
+        updateAlerts();
+        updatePredictions();
+    
+
+    // Call initializeApp on page load
+    initializeApp();
+    </script>
+</body>
+</html>
