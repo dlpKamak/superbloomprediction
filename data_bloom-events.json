@@ -1,0 +1,57 @@
+[
+    {
+        "id": 1,
+        "location": "California Poppy Fields",
+        "lat": 34.5,
+        "lng": -118.2,
+        "intensity": 0.9,
+        "species": "Eschscholzia californica",
+        "peak": "2024-04-15",
+        "ecosystem": "Mediterranean",
+        "pollinators": ["Bees", "Beetles"]
+    },
+    {
+        "id": 2,
+        "location": "Texas Bluebonnets",
+        "lat": 30.3,
+        "lng": -97.7,
+        "intensity": 0.8,
+        "species": "Lupinus texensis",
+        "peak": "2024-03-20",
+        "ecosystem": "Prairie",
+        "pollinators": ["Bees", "Hummingbirds"]
+    },
+    {
+        "id": 3,
+        "location": "Japanese Cherry Blossoms",
+        "lat": 35.7,
+        "lng": 139.7,
+        "intensity": 0.95,
+        "species": "Prunus serrulata",
+        "peak": "2024-04-05",
+        "ecosystem": "Temperate",
+        "pollinators": ["Bees", "Beetles"]
+    },
+    {
+        "id": 4,
+        "location": "Dutch Tulip Fields",
+        "lat": 52.3,
+        "lng": 4.9,
+        "intensity": 0.85,
+        "species": "Tulipa gesneriana",
+        "peak": "2024-04-25",
+        "ecosystem": "Agricultural",
+        "pollinators": ["Bees"]
+    },
+    {
+        "id": 5,
+        "location": "Amazon Rainforest Canopy",
+        "lat": -3.1,
+        "lng": -60.0,
+        "intensity": 0.75,
+        "species": "Mixed tropical species",
+        "peak": "2024-05-01",
+        "ecosystem": "Tropical Rainforest",
+        "pollinators": ["Bees", "Birds", "Bats"]
+    }
+]
